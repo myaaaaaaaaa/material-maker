@@ -24,6 +24,17 @@ jobs:
     name: Export Windows and Linux 🗔
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Base Commit 🛎️
+        uses: actions/checkout@v3
+        with:
+          ref: cli-export  # Remember to change Generating Regression Tests/uses
+          submodules: true
+      - name: Generating Regression Tests 🪳
+        uses: docker://barichello/godot-ci:3.5
+        timeout-minutes: 1
+        run: |
+          pwd
+          ./scripts/regression_export.sh --size 256 material_maker/examples/*.ptex
       - name: Checkout 🛎️
         uses: actions/checkout@v1
         with:
@@ -47,6 +58,11 @@ jobs:
           echo 'export/windows/wine = "/usr/bin/wine"' >> ~/.config/godot/editor_settings-3.tres
           echo 'export/windows/rcedit = "$RCEDIT_PATH/rcedit-x64.exe"' >> ~/.config/godot/editor_settings-3.tres
           mkdir -v -p build/${EXPORT_NAME}_${MM_RELEASE}_windows build/${EXPORT_NAME}_${MM_RELEASE}_linux
+      - name: Testing for Regressions 🪳
+        timeout-minutes: 1
+        run: |
+          pwd
+          ./scripts/regression_export.sh --size 256 material_maker/examples/*.ptex
       - name: Generate Documentation
         uses: ammaraskar/sphinx-action@master
         with:
@@ -91,6 +107,12 @@ jobs:
         with:
           name: linux_snapshot
           path: build/${{ env.EXPORT_NAME }}_${{ env.MM_RELEASE }}_linux.tar.gz
+      - name: Upload Test Results 🪳
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Test Results
+          path: /tmp/material_maker_test
   export-mac:
     name: Mac Export 🍎
     needs: export_windows_linux

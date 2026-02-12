@@ -27,7 +27,10 @@ func _ready() -> void:
 
 	update_model_selector()
 
-	if mm_globals.has_config(SETTING_3D_PREVIEW_MODEL):
+	var model = OS.get_environment("PAINT_MODEL")
+	if model:
+		preview3D.do_load_custom_mesh(model)
+	elif mm_globals.has_config(SETTING_3D_PREVIEW_MODEL):
 		var custom_model : String = ""
 		if custom_models.size() > 0:
 			custom_model = custom_models[0]
